@@ -1,0 +1,45 @@
+
+LANZADOR -- TERMINO DE DESOLVATACION
+Modo: 0, Conformaciones: 1, Simulaciones: 5
+
+
+Simulacion 1 (2bsm_lig.mol2 | 2bsm_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN CPU *
+**************************************
+Conformations: 1	 Mode: 0, CPU
+Termino electrostatico -0.172818
+CPU Processing time: 0.001065 (seg)
+
+Simulacion 2 (ace-xtal-lig.mol2 | ace_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN CPU *
+**************************************
+Conformations: 1	 Mode: 0, CPU
+Termino electrostatico 0.135262
+CPU Processing time: 0.003907 (seg)
+
+Simulacion 3 (gpb-xtal-lig.mol2 | gpb_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN CPU *
+**************************************
+Conformations: 1	 Mode: 0, CPU
+Termino electrostatico -0.006890
+CPU Processing time: 0.002563 (seg)
+
+Simulacion 4 (hivrt-xtal-lig.mol2 | hivrt_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN CPU *
+**************************************
+Conformations: 1	 Mode: 0, CPU
+Termino electrostatico -0.015293
+CPU Processing time: 0.004274 (seg)
+
+Simulacion 5 (tk-xtal-lig.mol2 | tk_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN CPU *
+**************************************
+Conformations: 1	 Mode: 0, CPU
+Termino electrostatico -0.046340
+CPU Processing time: 0.001049 (seg)
+

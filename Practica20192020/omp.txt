@@ -1,0 +1,55 @@
+
+LANZADOR -- TERMINO DE DESOLVATACION
+Modo: 1, Conformaciones: 1, Simulaciones: 5
+
+
+Simulacion 1 (2bsm_lig.mol2 | 2bsm_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN OPENMP *
+**************************************
+**************************************
+Conformations: 1	 Mode: 1, CMP
+ En el fichero solver_omp.cpp se encuentra la funcion forces_omp_au que se debe implementar con la version OpenMP
+Termino electrostatico -0.172818
+OpenMP Processing time: 0.015785 (seg)
+
+Simulacion 2 (ace-xtal-lig.mol2 | ace_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN OPENMP *
+**************************************
+**************************************
+Conformations: 1	 Mode: 1, CMP
+ En el fichero solver_omp.cpp se encuentra la funcion forces_omp_au que se debe implementar con la version OpenMP
+Termino electrostatico 0.135265
+OpenMP Processing time: 0.019010 (seg)
+
+Simulacion 3 (gpb-xtal-lig.mol2 | gpb_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN OPENMP *
+**************************************
+**************************************
+Conformations: 1	 Mode: 1, CMP
+ En el fichero solver_omp.cpp se encuentra la funcion forces_omp_au que se debe implementar con la version OpenMP
+Termino electrostatico -0.006891
+OpenMP Processing time: 0.014122 (seg)
+
+Simulacion 4 (hivrt-xtal-lig.mol2 | hivrt_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN OPENMP *
+**************************************
+**************************************
+Conformations: 1	 Mode: 1, CMP
+ En el fichero solver_omp.cpp se encuentra la funcion forces_omp_au que se debe implementar con la version OpenMP
+Termino electrostatico -0.015293
+OpenMP Processing time: 0.021053 (seg)
+
+Simulacion 5 (tk-xtal-lig.mol2 | tk_rec.mol2)
+
+* CALCULO ELECTROSTATICO EN OPENMP *
+**************************************
+**************************************
+Conformations: 1	 Mode: 1, CMP
+ En el fichero solver_omp.cpp se encuentra la funcion forces_omp_au que se debe implementar con la version OpenMP
+Termino electrostatico -0.046338
+OpenMP Processing time: 0.028848 (seg)
+
