@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <omp.h>
+#include <cuda.h>
 #include <sys/time.h>
 #include "wtime.h"
 #include "definitions.h"
@@ -9,7 +10,7 @@
 #include "solver.h"
 
 #define THREADS 32
-#define TAMBLOCK 4
+#define TAMBLOCK 15
 
 
 using namespace std;
@@ -19,11 +20,13 @@ using namespace std;
 */
 __global__ void escalculation (int atoms_r, int atoms_l, int nlig, float *rec_x_d, float *rec_y_d, float *rec_z_d, float *lig_x_d, float *lig_y_d, float *lig_z_d, float *ql_d,float *qr_d, float *energy_d, int nconformations){
 
-  double dist, total_elec = 0, miatomo[3], elecTerm;
+  int id = blockIdx.x*blockDim.x+threadIdx.x; 
+  double dist, miatomo[3], elecTerm, total_elec = 0;
   int totalAtomLig = nconformations * nlig;
   
-  //#pragma omp parallel for reduction(+:total_elec), private (elecTerm, dist, miatomo)
-	for (int k=0; k < totalAtomLig; k+=nlig){
+ /**********************************************************************************************************************/
+ 
+  for (int k=id; k < totalAtomLig; k+=nlig){
 	  for(int i=0;i<atoms_l;i++){					
 			miatomo[0] = *(lig_x_d + k + i);
 			miatomo[1] = *(lig_y_d + k + i);
@@ -32,19 +35,22 @@ __global__ void escalculation (int atoms_r, int atoms_l, int nlig, float *rec_x_
 			for(int j=0;j<atoms_r;j++){				
 				elecTerm = 0;
         dist=calculaDistancia (rec_x_d[j], rec_y_d[j], rec_z_d[j], miatomo[0], miatomo[1], miatomo[2]);
-//				printf ("La distancia es %lf\n", dist);
         elecTerm = (ql_d[i]* qr_d[j]) / dist;
 				total_elec += elecTerm;
-//        printf ("La carga es %lf\n", total_elec);
 			}
 		}
 		
 		energy_d[k/nlig] = total_elec;
+    //__syncthreads(); 
 		total_elec = 0;
   }
 	printf("Termino electrostatico %f\n", energy_d[0]);
+ 
+ //printf("\n Soy el hilo %d", id);
 
-	
+  //energy_d[id] = 1.0f;	
+ 
+ 
   return;
 }
 
@@ -73,7 +79,7 @@ void forces_GPU_AU (int atoms_r, int atoms_l, int nlig, float *rec_x, float *rec
   cudaMalloc(&lig_z_d, (int)sizeof(lig_z));
   cudaMalloc(&ql_d, (int)sizeof(ql));
   cudaMalloc(&energy_d, (int)sizeof(energy));
-  printf("\n memoria para GPU reservada");	
+  //printf("\n memoria para GPU reservada");	
  
   //pasamos datos de host to device
 	cudaMemcpy(rec_x_d, rec_x, sizeof(rec_x), cudaMemcpyHostToDevice);
@@ -85,40 +91,40 @@ void forces_GPU_AU (int atoms_r, int atoms_l, int nlig, float *rec_x, float *rec
   cudaMemcpy(lig_z_d, lig_z, sizeof(lig_z), cudaMemcpyHostToDevice);
   cudaMemcpy(ql_d, ql, sizeof(ql), cudaMemcpyHostToDevice);
   cudaMemcpy(energy_d, energy, sizeof(energy), cudaMemcpyHostToDevice);
-  printf("Datos pasados de host a device");
+  //printf("Datos pasados de host a device");
  
 	//Definir numero de hilos y bloques
-  dim3 block = THREADS/TAMBLOCK;
-  dim3 thread = TAMBLOCK;
-  printf("bloques: %d\n", THREADS/TAMBLOCK);
-	printf("hilos por bloque: %d\n", TAMBLOCK);
-  
+  dim3 block = (int)ceil(nlig/TAMBLOCK);
+  dim3 thread = nlig;
+  printf("\n bloques: %d\n", nlig/TAMBLOCK);
+	printf(" hilos por bloque: %d\n", TAMBLOCK);
+  printf(" hilos totales = %d \n", nlig);
 
 	//llamamos a kernel
 	escalculation <<< block,thread>>> (atoms_r, atoms_l, nlig, rec_x_d, rec_y_d, rec_z_d, lig_x_d, lig_y_d, lig_z_d, ql_d, qr_d, energy_d, nconformations);
-	printf("kernel finalizado");
+	//printf("kernel finalizado");
 	//control de errores kernel
 	cudaDeviceSynchronize();
 	cudaStatus = cudaGetLastError();
 	if(cudaStatus != cudaSuccess) fprintf(stderr, "Error en el kernel %d\n", cudaStatus); 
 
 	//Traemos info al host
-  cudaMemcpy(rec_x, rec_x_d, sizeof(rec_x), cudaMemcpyDeviceToHost);
-  cudaMemcpy(rec_y, rec_y_d, sizeof(rec_y), cudaMemcpyDeviceToHost);
-  cudaMemcpy(rec_z, rec_z_d, sizeof(rec_z), cudaMemcpyDeviceToHost);
-  cudaMemcpy(qr, qr_d, sizeof(qr), cudaMemcpyDeviceToHost);
-  cudaMemcpy(lig_x, lig_x_d, sizeof(lig_x), cudaMemcpyDeviceToHost);
-  cudaMemcpy(lig_y, lig_y_d, sizeof(lig_y), cudaMemcpyDeviceToHost);
-  cudaMemcpy(lig_z, lig_z_d, sizeof(lig_z), cudaMemcpyDeviceToHost);
-  cudaMemcpy(ql, ql_d, sizeof(ql), cudaMemcpyDeviceToHost);
-  cudaMemcpy(energy, energy_d, sizeof(energy), cudaMemcpyHostToDevice);
+  cudaMemcpy(rec_x, rec_x_d, sizeof(rec_x_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(rec_y, rec_y_d, sizeof(rec_y_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(rec_z, rec_z_d, sizeof(rec_z_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(qr, qr_d, sizeof(qr_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(lig_x, lig_x_d, sizeof(lig_x_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(lig_y, lig_y_d, sizeof(lig_y_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(lig_z, lig_z_d, sizeof(lig_z_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(ql, ql_d, sizeof(ql_d), cudaMemcpyDeviceToHost);
+  cudaMemcpy(energy, energy_d, sizeof(energy_d), cudaMemcpyDeviceToHost);
 	
   // para comprobar que la ultima conformacion tiene el mismo resultado que la primera
-	printf("Termino electrostatico de conformacion %d es: %f\n", nconformations-1, energy[nconformations-1]); 
+	printf("\n Termino electrostatico de conformacion %d es: %f\n", nconformations-1, energy[nconformations-1]); 
 
 	//resultado varia repecto a SECUENCIAL y CUDA en 0.000002 por falta de precision con float
 	//posible solucion utilizar double, probablemente bajara el rendimiento -> mas tiempo para calculo
-	printf("Termino electrostatico %f\n", energy[0]);
+	printf("\n Termino electrostatico %f\n", energy[0]);
 
 	//Liberamos memoria reservada para GPU
 }
